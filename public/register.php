@@ -7,6 +7,7 @@
 
 require_once('../lib/db.php');
 require_once('../lib/session.php');
+require_once('../lib/view.php');
 
 function do_get() {
 ?>
@@ -16,16 +17,9 @@ function do_get() {
     <input type="password" name="confirm"><br>
     <button>Je m'inscris !</button><br>
 <?php
-    $errors = Session::get('errors');
-    Session::flush('errors');
-    if(is_array($errors) && !empty($errors)):
+    displayMessages();
+    Session::flushMessages();
 ?>
-    <ul class="error">
-<?php foreach($errors as $error): ?>
-        <li><?= $error ?></li>
-<?php endforeach; ?>
-    </ul>
-<?php endif; ?>
 </form>
 <?php
 }
@@ -52,7 +46,11 @@ function do_post() {
     }
 
     if(!empty($errors)) {
-        Session::set('errors', $errors);
+        foreach($errors as $error) {
+            $m = new Message(Type::Error, $error);
+            Session::addMessage($m);
+        }
+
         header('Location: register.php');
     } else {
         // TOUT VA BIEN ICI !
@@ -63,11 +61,17 @@ function do_post() {
 
         if(!$ok) {
             $errors[] = "Erreur d'insertion en base de données !";
-            Session::set('errors', $errors);
+           
+            foreach($errors as $error) {
+                $m = new Message(Type::Error, $error);
+                Session::addMessage($m);
+            }
+
             header('Location: register.php');
         } else {
-            // Ici, il faudrait un message pour informer l'utilisateur
-            // de la bonne création de son compte.
+            $m = new Message(Type::Success, "Votre compte a été créé avec succès !");
+            Session::addMessage($m);
+
             header('Location: login.php');
         }
     }

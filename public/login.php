@@ -7,6 +7,7 @@
 
 require_once('../lib/session.php');
 require_once('../lib/db.php');
+require_once('../lib/view.php');
 
 function do_get() {
 ?>
@@ -14,14 +15,9 @@ function do_get() {
     <input type="text" name="email"><br>
     <input type="password" name="password"><br>
     <button>Go !</button><br>
-<?php
-    $error_message = Session::getErrorMessage();
-    Session::flushErrorMessage();
-    if($error_message) {
-?>
-    <p class="error"><?= $error_message ?></p>
-<?php
-    }
+<?php 
+    displayMessages(); 
+    Session::flushMessages();
 ?>
 </form>
 <p>Pas encore de compte ? Vous pouvez vous inscrire <a href="register.php">ici</a> !</p>
@@ -40,14 +36,22 @@ function do_post() {
         $user = $db->validateUserCredentials($email, $password);
         if($user) {
             Session::login($user);
-            Session::flushErrorMessage();
+            Session::flushMessages();
+
+            $message = new Message(Type::Success, 'Authentification OK !');
+            Session::addMessage($message);
+
             header('Location: index.php');
         } else {
-            Session::setErrorMessage('Email ou mot de passe invalide');
+            $message = new Message(Type::Error, 'Email ou mot de passe invalide');
+            Session::addMessage($message);
+
             header('Location: login.php');
         }
     } else {
-        Session::setErrorMessage('Veuillez saisir un e-mail valide !');
+        $message = new Message(Type::Error, 'Veuillez saisir un e-mail valide !');
+        Session::addMessage($message);
+
         header('Location: login.php');
     }
 }

@@ -3,7 +3,10 @@
 require_once('../lib/session.php');
 
 Session::open();
-$user = Session::get('user');
+$user = Session::get(Session::CURRENT_USER);
+
+Session::flushMessages();
+
 if($user) {
     $email = $user['email'];
     echo "<p>Bonjour $email !</p>";
